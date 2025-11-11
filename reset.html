@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Redirecting…</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;padding:24px;text-align:center}
+    .btn{display:inline-block;padding:12px 20px;background:#1B5E20;color:#fff;border-radius:8px;text-decoration:none}
+    .note{color:#666;margin-top:12px;font-size:14px}
+  </style>
+</head>
+<body>
+  <h2>Memproses link…</h2>
+  <p class="note">Jika tidak terjadi apa-apa, ketuk tombol di bawah.</p>
+  <div id="actions" style="margin-top:18px; display:none;">
+    <a id="openApp" class="btn" href="#">Buka Aplikasi</a>
+    <div style="margin-top:12px;">
+      <button id="copyBtn">Salin Link</button>
+    </div>
+  </div>
+
+  <script>
+    function getParam(name, url = window.location.href) {
+      name = name.replace(/[[\]]/g, '\\$&');
+      const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+      const results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    (function() {
+      let oob = getParam('oobCode');
+      if (!oob) {
+        const wrapped = getParam('link');
+        if (wrapped) {
+          try {
+            const u = new URL(wrapped);
+            oob = u.searchParams.get('oobCode');
+          } catch (e) { oob = null; }
+        }
+      }
+
+      if (!oob) {
+        document.body.innerHTML = '<h3>Link reset tidak valid.</h3><p class="note">Buka kembali email dan coba lagi.</p>';
+        return;
+      }
+
+      const appScheme = 'chaosapp://reset?oobCode=' + encodeURIComponent(oob);
+      const openApp = document.getElementById('openApp');
+      openApp.href = appScheme;
+      document.getElementById('actions').style.display = 'block';
+
+      setTimeout(function() { window.location = appScheme; }, 500);
+
+      document.getElementById('copyBtn').addEventListener('click', function() {
+        navigator.clipboard?.writeText(appScheme).then(function() {
+          alert('Link disalin. Buka aplikasi dan tempel link jika perlu.');
+        }, function() {
+          alert('Gagal menyalin. Silakan salin manual: ' + appScheme);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
